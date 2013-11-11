@@ -1,4 +1,5 @@
 module.exports = function (config) {
+//changed format
   config.set({
 	// base path, that will be used to resolve files and exclude
 	basePath : '.',
