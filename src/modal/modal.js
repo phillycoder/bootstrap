@@ -139,7 +139,7 @@ angular.module('ui.bootstrap.modal', [])
         modalWindow.modalDomEl.remove();
 
         //remove backdrop if no longer needed
-        if (backdropIndex() == -1) {
+        if (backdropDomEl && backdropIndex() == -1) {
           backdropDomEl.remove();
           backdropDomEl = undefined;
         }
@@ -211,13 +211,11 @@ angular.module('ui.bootstrap.modal', [])
 
   .provider('$modal', function () {
 
-    var defaultOptions = {
-      backdrop: true, //can be also false or 'static'
-      keyboard: true
-    };
-
-    return {
-      options: defaultOptions,
+    var $modalProvider = {
+      options: {
+        backdrop: true, //can be also false or 'static'
+        keyboard: true
+      },
       $get: ['$injector', '$rootScope', '$q', '$http', '$templateCache', '$controller', '$modalStack',
         function ($injector, $rootScope, $q, $http, $templateCache, $controller, $modalStack) {
 
@@ -250,15 +248,15 @@ angular.module('ui.bootstrap.modal', [])
               result: modalResultDeferred.promise,
               opened: modalOpenedDeferred.promise,
               close: function (result) {
-                $modalStack.close(this, result);
+                $modalStack.close(modalInstance, result);
               },
               dismiss: function (reason) {
-                $modalStack.dismiss(this, reason);
+                $modalStack.dismiss(modalInstance, reason);
               }
             };
 
             //merge and clean up options
-            modalOptions = angular.extend({}, defaultOptions, modalOptions);
+            modalOptions = angular.extend({}, $modalProvider.options, modalOptions);
             modalOptions.resolve = modalOptions.resolve || {};
 
             //verify options
@@ -273,6 +271,8 @@ angular.module('ui.bootstrap.modal', [])
             templateAndResolvePromise.then(function resolveSuccess(tplAndVars) {
 
               var modalScope = (modalOptions.scope || $rootScope).$new();
+              modalScope.$close = modalInstance.close;
+              modalScope.$dismiss = modalInstance.dismiss;
 
               var ctrlInstance, ctrlLocals = {};
               var resolveIter = 1;
@@ -313,4 +313,6 @@ angular.module('ui.bootstrap.modal', [])
           return $modal;
         }]
     };
+
+    return $modalProvider;
   });
